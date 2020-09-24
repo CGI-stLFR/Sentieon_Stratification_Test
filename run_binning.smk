@@ -29,7 +29,7 @@ def get_all_output_files():
   return expected_files
 
 
-# Targets file
+# Targets rule
 rule all:
   input:
     all_outputs = get_all_output_files()
