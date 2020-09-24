@@ -1,0 +1,7 @@
+Quast*/
+Assembly/
+stratified*/
+synthetic*/
+*.log
+snakemake.err.txt
+.snakemake/
