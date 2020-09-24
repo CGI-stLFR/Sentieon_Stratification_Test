@@ -1,14 +1,19 @@
+# Don Freed at Sentieon wrote most of this and should be able to answer questions
 
 import os.path
 
 configfile: "run_binning.config"
 
+# create a dict of stratification names and paths
 stratification_map = {}
+# strat region tsv contains mappings of names to files
 with open(config["stratification_region_tsv"]) as fh:
   for line in fh:
     name, strat_bed = line.rstrip().split('\t')
     stratification_map[name] = config["stratification_bed_dir"] + '/' + strat_bed
 
+
+# define all desired output files
 def get_all_output_files():
   '''
   Find all of the expected outputs
@@ -23,6 +28,8 @@ def get_all_output_files():
       expected_files.append("stratified_counts_plot/" + sample + '/' + ref_name + "/total_count.png")
   return expected_files
 
+
+# Targets file
 rule all:
   input:
     all_outputs = get_all_output_files()
@@ -218,6 +225,7 @@ rule get_filter_list:
     {input.bcftools} view -h {input.annotated_truth_vcf} | grep "^##FILTER" | sed -e 's/^##FILTER=<ID=//' -e 's/,Description=.*$//' > {output.filter_list}
     """
 
+# The filters used are the labels of calls, TP-HET-SWITCH, PHASE0_FP, etc.
 rule filter_stratified:
   input:
     stratification_bed = lambda wildcards: stratification_map[wildcards.stratificaiton_name],
@@ -246,6 +254,8 @@ def get_count_vcf(wildcards):
   else:
     return "synthetic_stratified_vcf/" + wildcards.sample + '/' + wildcards.ref_name + '/' + wildcards.stratificaiton_name + "/stratified.vcf.gz"
 
+
+# Count the number of variants in each stratified VCF
 rule count_filters:
   input:
     filter_list = "synthetic_filters/{sample}/{ref_name}/filters.txt",
@@ -312,5 +322,3 @@ rule table_to_plot:
     mkdir -p $outdir
     python3 {input.table_to_plot} {input.stratified_counts_table} $outdir
     """
-
-
